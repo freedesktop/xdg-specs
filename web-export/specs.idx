@@ -51,6 +51,8 @@ git:xdg/default-icon-theme:spec/icon-theme-spec.xml    b1a891e95eb4f28da4e43fb6c
 git:xdg/xdg-specs:mime-apps/mime-apps-spec.xml		1354abdb635b560f3c36373c8074ee7e5f63abab		1.0	mime-apps-spec
 git:xdg/xdg-specs:mime-apps/mime-apps-spec.xml		HEAD		1.0.1	mime-apps-spec
 
+git:xdg/xdg-specs:intent-apps/intent-apps-spec.xml		HEAD		1.0	intent-apps-spec
+
 git:xdg/xdg-specs:menu/menu-spec.xml			HEAD		1.1	menu-spec
 git:xdg/xdg-specs:menu/menu-spec.xml			647153fb87e5f642a7b7a3fdcec90961f36e89ab		1.0	menu-spec
 git:xdg/xdg-specs:menu/menu-spec.xml			a61b06aa1aee4743f50024b0695795fe9568d929		0.92	menu-spec

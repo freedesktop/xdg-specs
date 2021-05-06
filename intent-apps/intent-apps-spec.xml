@@ -1,0 +1,93 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<article id="index">
+<articleinfo>
+   <authorgroup>
+    <corpauthor>
+      <ulink url="http://www.freedesktop.org">Cross Desktop Group</ulink>
+    </corpauthor>
+    <author>
+        <firstname>David</firstname>
+        <surname>Faure</surname>
+        <affiliation>
+          <address>
+            <email>faure@kde.org</email>
+          </address>
+        </affiliation>
+    </author>
+    <author>
+        <firstname>Ryan</firstname>
+        <surname>Lortie</surname>
+        <affiliation>
+          <address>
+            <email>desrt@gnome.org</email>
+          </address>
+        </affiliation>
+    </author>
+    </authorgroup>
+  <title>Preference order for applications implementing the same intent</title>
+  <pubdate>3 May 2021</pubdate>
+  <releaseinfo>1.0.0</releaseinfo>
+</articleinfo>
+<sect1>
+  <title>Introduction</title>
+  <para>The freedesktop.org <ulink url="http://www.freedesktop.org/wiki/Specifications/desktop-entry-spec/">Desktop Entry specification</ulink> allows applications to announce which intents they support, using the Implements key.</para>
+  <para>An intent can be represent the fact that the application provides a certain type of functionality (e.g. "a calculator"), implements a specific DBus interface (e.g. org.freedesktop.FileManager1), or anything else that is agreed among all applications implementing the intent.</para>
+  <para>This specification solves the issue of which application should be used for a given intent by default, how to let the user change the default application.</para>
+</sect1>
+<sect1 id="file">
+  <title>File name and location</title>
+  <para>Users, system administrators, application vendors and distributions can change associations between applications and intents by writing into a file called intentapps.list.</para>
+  <para>The lookup order for this file is as follows:</para>
+  <informaltable>
+    <tgroup cols="2">
+      <tbody>
+        <row>
+          <entry>$XDG_CONFIG_HOME/$desktop-intentapps.list</entry><entry>user overrides, desktop-specific (for advanced users)</entry>
+        </row><row>
+          <entry>$XDG_CONFIG_HOME/intentapps.list</entry><entry>user overrides (recommended location for user configuration GUIs)</entry>
+        </row><row>
+          <entry>$XDG_CONFIG_DIRS/$desktop-intentapps.list</entry><entry>sysadmin and ISV overrides, desktop-specific</entry>
+        </row><row>
+          <entry>$XDG_CONFIG_DIRS/intentapps.list</entry><entry>sysadmin and ISV overrides</entry>
+        </row><row>
+          <entry>$XDG_DATA_DIRS/applications/$desktop-intentapps.list</entry><entry>distribution-provided defaults, desktop-specific</entry>
+        </row><row>
+          <entry>$XDG_DATA_DIRS/applications/intentapps.list</entry><entry>distribution-provided defaults</entry>
+        </row>
+      </tbody>
+    </tgroup>
+  </informaltable>
+  <para>In this table, $desktop is one of the names of the current desktop, lowercase (for instance, kde, gnome, xfce, etc.)</para>
+  <para>This is determined from taking the ascii-lowercase form of a component the environment variable $XDG_CURRENT_DESKTOP, which is a colon-separated list of names that the current desktop is known as.</para>
+  <para>The $desktop variable should be each of these values in turn.</para>
+  <para>All of the above files are referred to as "intentapps.list" in the rest of this specification, for simplicity.</para>
+  <para>Note that, despite the similarity to the mimeapps.lst spec, it is not possible to add or remove associations from any of these files.</para>
+</sect1>
+<sect1 id="default">
+  <title>Default Application</title>
+  <para>Indicating the default application for a given intent is done by writing into the group [Default Applications] in the file intentapps.list.</para>
+  <para>The [Default Applications] group indicates the default application to be used for a given intent. If the application is no longer installed, the next application in the list is attempted, and so on.</para>
+  <para>This example ensures that the application default1.desktop will be used for intent1, if it's installed and associated with the intent, and otherwise default2.desktop if it's installed and associated:
+    <programlisting>
+[Default Applications]
+intent1=default1.desktop;default2.desktop;</programlisting>
+  </para>
+  <para>The value is a semicolon-separated list of desktop file IDs (as defined in the desktop entry spec).</para>
+  <para>In the absence of such an entry, the next intentapps.list is checked. Once all levels have been checked, if no entry could be found, the implementation should pick the most-preferred .desktop files associated with the intent.</para>
+  <para>The suggested algorithm for determining the default application for a given intent is:</para>
+  <itemizedlist>
+    <listitem><para>get the list of desktop ids for the given intent under the "Default Applications" group in the first intentapps.list</para></listitem>
+    <listitem><para>for each desktop ID in the list, attempt to load the named desktop file, using the normal rules</para></listitem>
+    <listitem><para>if a valid desktop file is found, verify that it is associated with the intent</para></listitem>
+    <listitem><para>if a valid association is found, we have found the default application</para></listitem>
+    <listitem><para>if after all list items are handled, we have not yet found a default application, proceed to the next intentapps.list file in the search order and repeat</para></listitem>
+    <listitem><para>if after all files are handled, we have not yet found a default application, we are free to choose how to pick one among the available implementations of the intent. This might include hardcoding a preferred default (e.g. from the same desktop environment / software stack), sorting available desktop files by desktop ID to pick the first, actually asking the user about their preference... In any case it should be consistent across runs rather than random (e.g. based on the order of an unsorted list of files from a directory).</para></listitem>
+  </itemizedlist>
+  <para>Note that a desktop ID set as the default for an application can refer to a desktop file of the same name found in a directory of higher precedence.</para>
+  <para>Note as well that the default application for a given intent must be an application that is associated with the intent. It is not possible to arbitrarily associate applications with new intents.</para>
+  <para>It's also possible to put several implementations of an intent in order of preference by reading all intentapps.list files in the order above. Remember however that these files cannot be used to find all implementations of an intent; the desktop files are the canonical source of that information.</para>
+</sect1>
+
+</article>
